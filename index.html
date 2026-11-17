@@ -73,7 +73,7 @@ h1 .q{color:var(--lotus)}
 .spin:disabled{opacity:.6;cursor:wait}
 .spin-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px}
 .add-jump{font:600 15px var(--body);border:1.5px solid var(--herb);color:var(--herb);background:var(--surface);border-radius:999px;padding:11px 20px;cursor:pointer}
-.add-jump:hover{background:var(--herb);color:var(--on-dark)}
+@media (hover:hover){.add-jump:hover{background:var(--herb);color:var(--on-dark)}}
 .count{font-size:13px;color:var(--muted)}
 
 /* ===== Phần dưới ===== */
@@ -182,7 +182,7 @@ select:focus-visible{outline:3px solid var(--stool);outline-offset:2px}
   <header>
     <span class="eyebrow">Đồng Tháp · đất sen hồng</span>
     <h1>Ăn gì ở Cao Lãnh<span class="q">?</span></h1>
-    <p class="sub">Bấm Quay để chọn ngẫu nhiên một món hay một quán quen ở Cao Lãnh. Lọc theo loại món, thêm món bạn thích, bỏ món vừa ăn hôm qua.</p>
+    <p class="sub">Bấm Quay để chọn ngẫu nhiên một món hay một quán quen ở Cao Lãnh. Lọc theo loại món và nhóm tiền, thêm món bạn thích, bỏ món vừa ăn hôm qua.</p>
   </header>
 
   <section class="reel-zone">
@@ -201,6 +201,10 @@ select:focus-visible{outline:3px solid var(--stool);outline-offset:2px}
     <div>
       <h2>Loại món</h2>
       <div class="chips" id="chips"></div>
+    </div>
+    <div>
+      <h2>Nhóm tiền</h2>
+      <div class="chips" id="price-chips"></div>
     </div>
   </section>
 
@@ -226,6 +230,10 @@ select:focus-visible{outline:3px solid var(--stool);outline-offset:2px}
         <div class="field full">
           <label for="new-cat">Loại món</label>
           <select id="new-cat"></select>
+        </div>
+        <div class="field full">
+          <label for="new-band">Nhóm tiền</label>
+          <select id="new-band"></select>
         </div>
         <div class="field full">
           <label for="new-desc">Mô tả ngắn (không bắt buộc)</label>
@@ -272,56 +280,68 @@ var CARD_W = 140, CARD_W_MOBILE = 116, GAP = 8; // độ rộng thẻ trên máy
 // Để trống img:"" thì thẻ hiện chữ.
 // min, max: giá thấp nhất và cao nhất (đồng), unit: đơn vị tính
 var DEFAULT_DISHES = [
-  {name:"Bún cá", cat:"Bún, phở, hủ tiếu", min:25000, max:35000, unit:"tô", img:"", desc:"Bún cá lóc nước ngọt thanh, ăn kèm rau sống và bông điên điển."},
-  {name:"Mì Quảng", cat:"Bún, phở, hủ tiếu", min:30000, max:40000, unit:"tô", img:"", desc:"Sợi mì vàng, ít nước, ăn kèm bánh tráng mè."},
-  {name:"Bánh canh gà", cat:"Bún, phở, hủ tiếu", min:25000, max:35000, unit:"tô", img:"", desc:"Sợi bánh canh dai, thịt gà xé, nước dùng ngọt."},
-  {name:"Mì tươi", cat:"Bún, phở, hủ tiếu", min:25000, max:35000, unit:"tô", img:"", desc:"Mì tươi sợi mềm, có xá xíu, trứng cút."},
-  {name:"Bánh canh cua", cat:"Bún, phở, hủ tiếu", min:35000, max:50000, unit:"tô", img:"", desc:"Nước sệt đậm vị cua, thêm chả cua."},
-  {name:"Bánh canh ghẹ", cat:"Bún, phở, hủ tiếu", min:40000, max:60000, unit:"tô", img:"", desc:"Nguyên con ghẹ, nước dùng ngọt thịt."},
-  {name:"Cháo thịt bằm", cat:"Bún, phở, hủ tiếu", min:15000, max:25000, unit:"tô", img:"", desc:"Nhẹ bụng, ăn sáng hay lúc mệt đều hợp."},
-  {name:"Hủ tiếu", cat:"Bún, phở, hủ tiếu", min:25000, max:40000, unit:"tô", img:"", desc:"Hủ tiếu nước, có thịt, tôm, lòng."},
-  {name:"Bún bò", cat:"Bún, phở, hủ tiếu", min:30000, max:45000, unit:"tô", img:"", desc:"Cay thơm mùi sả, có giò heo và chả."},
-  {name:"Phở", cat:"Bún, phở, hủ tiếu", min:30000, max:45000, unit:"tô", img:"", desc:"Phở bò tái, nạm, gân, thêm rau quế và chanh."},
-  {name:"Bún riêu", cat:"Bún, phở, hủ tiếu", min:25000, max:35000, unit:"tô", img:"", desc:"Riêu cua, đậu hũ chiên, huyết, thêm mắm tôm."},
-  {name:"Bún Thái", cat:"Bún, phở, hủ tiếu", min:35000, max:50000, unit:"tô", img:"", desc:"Nước chua cay kiểu Thái, có hải sản."},
-  {name:"Miến gà", cat:"Bún, phở, hủ tiếu", min:30000, max:40000, unit:"tô", img:"", desc:"Miến dai, thịt gà, nước dùng thanh."},
-  {name:"Bún mắm", cat:"Bún, phở, hủ tiếu", min:35000, max:50000, unit:"tô", img:"", desc:"Nước mắm cá linh đậm đà, có tôm, mực, heo quay."},
-  {name:"Cơm lòng", cat:"Cơm", min:25000, max:35000, unit:"dĩa", img:"", desc:"Lòng heo luộc hoặc xào, ăn với cơm nóng."},
-  {name:"Cơm tấm", cat:"Cơm", min:25000, max:40000, unit:"dĩa", img:"", desc:"Sườn nướng, bì, chả trứng và mỡ hành."},
-  {name:"Cơm gà xối mỡ", cat:"Cơm", min:35000, max:45000, unit:"dĩa", img:"", desc:"Đùi gà giòn da, cơm chiên, dưa leo."},
-  {name:"Cơm gà", cat:"Cơm", min:30000, max:40000, unit:"dĩa", img:"", desc:"Cơm nấu nước gà, thịt gà luộc hoặc xé."},
-  {name:"Cơm trộn", cat:"Cơm", min:40000, max:60000, unit:"tô", img:"", desc:"Cơm trộn kiểu Hàn với rau, trứng và sốt cay."},
-  {name:"Bánh ướt lòng gà", cat:"Món khô & ăn vặt", min:25000, max:35000, unit:"dĩa", img:"", desc:"Bánh ướt mềm, lòng gà, trứng non, nước mắm chua ngọt."},
-  {name:"Bún đậu mắm tôm", cat:"Món khô & ăn vặt", min:35000, max:60000, unit:"mẹt", img:"", desc:"Đậu hũ chiên giòn, chả cốm, thịt luộc, chấm mắm tôm."},
-  {name:"Mì trộn", cat:"Món khô & ăn vặt", min:25000, max:35000, unit:"dĩa", img:"", desc:"Mì trộn sốt, thêm trứng và xúc xích."},
-  {name:"Hủ tiếu khô", cat:"Món khô & ăn vặt", min:30000, max:40000, unit:"tô", img:"", desc:"Hủ tiếu trộn sốt, chén nước dùng để riêng."},
-  {name:"Bánh mì chảo", cat:"Món khô & ăn vặt", min:30000, max:45000, unit:"phần", img:"", desc:"Chảo nóng có trứng, pate, xúc xích, ăn với bánh mì."},
-  {name:"Cơm chay", cat:"Món chay", min:15000, max:25000, unit:"dĩa", img:"", desc:"Cơm với các món chay, nhẹ bụng."},
-  {name:"Hủ tiếu chay", cat:"Món chay", min:15000, max:25000, unit:"tô", img:"", desc:"Nước dùng rau củ thanh ngọt."},
-  {name:"Phở chay", cat:"Món chay", min:20000, max:30000, unit:"tô", img:"", desc:"Phở với nấm, đậu hũ và rau."},
-  {name:"Lẩu chay", cat:"Món chay", min:120000, max:200000, unit:"nồi", img:"", desc:"Lẩu nấm và rau củ, hợp đi nhóm."},
-  {name:"Đồ nướng", cat:"Lẩu & nướng", min:100000, max:200000, unit:"người", img:"", desc:"Thịt, hải sản nướng tại bàn, hợp đi đông."},
-  {name:"Lẩu Thái", cat:"Lẩu & nướng", min:180000, max:300000, unit:"nồi", img:"", desc:"Chua cay, hợp nhóm 3 đến 4 người."},
-  {name:"Lẩu thập cẩm", cat:"Lẩu & nướng", min:180000, max:300000, unit:"nồi", img:"", desc:"Đủ bò, hải sản, viên thả lẩu."},
-  {name:"Lẩu cua đồng", cat:"Lẩu & nướng", min:180000, max:300000, unit:"nồi", img:"", desc:"Riêu cua đồng béo, ăn với rau đồng."},
-  {name:"Lotteria", cat:"Gà rán & món Hàn", min:40000, max:100000, unit:"phần", img:"", desc:"Gà rán, burger, khoai tây chiên."},
-  {name:"Jollibee", cat:"Gà rán & món Hàn", min:35000, max:90000, unit:"phần", img:"", desc:"Gà giòn, mì Ý, combo cho cả nhà."},
-  {name:"Dookki", cat:"Gà rán & món Hàn", min:130000, max:170000, unit:"người", img:"", desc:"Buffet lẩu tokbokki kiểu Hàn."},
-  {name:"Spicy Box", cat:"Gà rán & món Hàn", min:40000, max:90000, unit:"phần", img:"", desc:"Mì cay, tokbokki, chọn cấp độ cay."},
-  {name:"Changwon", cat:"Gà rán & món Hàn", min:50000, max:150000, unit:"người", img:"", desc:"Món Hàn, hợp đi nhóm."},
-  {name:"Seoul", cat:"Gà rán & món Hàn", min:50000, max:150000, unit:"người", img:"", desc:"Món Hàn, hợp đi nhóm."},
-  {name:"Mì cay", cat:"Gà rán & món Hàn", min:35000, max:70000, unit:"tô", img:"", desc:"Mì cay kiểu Hàn, chọn cấp độ từ 0 đến 7."}
+  {name:"Bún cá", cat:"Cơm, bún, phở", min:20000, max:29000, unit:"tô", img:"", desc:"Bún cá lóc nước ngọt thanh, ăn kèm rau sống và bông điên điển."},
+  {name:"Mì Quảng", cat:"Cơm, bún, phở", min:30000, max:40000, unit:"tô", img:"", desc:"Sợi mì vàng, ít nước, ăn kèm bánh tráng mè."},
+  {name:"Bánh canh gà", cat:"Cơm, bún, phở", min:25000, max:35000, unit:"tô", img:"", desc:"Sợi bánh canh dai, thịt gà xé, nước dùng ngọt."},
+  {name:"Mì tươi", cat:"Cơm, bún, phở", min:25000, max:35000, unit:"tô", img:"", desc:"Mì tươi sợi mềm, có xá xíu, trứng cút."},
+  {name:"Bánh canh cua", cat:"Cơm, bún, phở", min:35000, max:50000, unit:"tô", img:"", desc:"Nước sệt đậm vị cua, thêm chả cua."},
+  {name:"Bánh canh ghẹ", cat:"Cơm, bún, phở", min:40000, max:60000, unit:"tô", img:"", desc:"Nguyên con ghẹ, nước dùng ngọt thịt."},
+  {name:"Cháo thịt bằm", cat:"Cơm, bún, phở", min:15000, max:25000, unit:"tô", img:"", desc:"Nhẹ bụng, ăn sáng hay lúc mệt đều hợp."},
+  {name:"Hủ tiếu", cat:"Cơm, bún, phở", min:25000, max:40000, unit:"tô", img:"", desc:"Hủ tiếu nước, có thịt, tôm, lòng."},
+  {name:"Bún bò", cat:"Cơm, bún, phở", min:30000, max:45000, unit:"tô", img:"", desc:"Cay thơm mùi sả, có giò heo và chả."},
+  {name:"Phở", cat:"Cơm, bún, phở", min:30000, max:45000, unit:"tô", img:"", desc:"Phở bò tái, nạm, gân, thêm rau quế và chanh."},
+  {name:"Bún riêu", cat:"Cơm, bún, phở", min:20000, max:29000, unit:"tô", img:"", desc:"Riêu cua, đậu hũ chiên, huyết, thêm mắm tôm."},
+  {name:"Bún Thái", cat:"Cơm, bún, phở", min:35000, max:50000, unit:"tô", img:"", desc:"Nước chua cay kiểu Thái, có hải sản."},
+  {name:"Miến gà", cat:"Cơm, bún, phở", min:30000, max:40000, unit:"tô", img:"", desc:"Miến dai, thịt gà, nước dùng thanh."},
+  {name:"Bún mắm", cat:"Cơm, bún, phở", min:35000, max:50000, unit:"tô", img:"", desc:"Nước mắm cá linh đậm đà, có tôm, mực, heo quay."},
+  {name:"Cơm lòng", cat:"Cơm, bún, phở", min:25000, max:35000, unit:"dĩa", img:"", desc:"Lòng heo luộc hoặc xào, ăn với cơm nóng."},
+  {name:"Cơm tấm", cat:"Cơm, bún, phở", min:25000, max:40000, unit:"dĩa", img:"", desc:"Sườn nướng, bì, chả trứng và mỡ hành."},
+  {name:"Cơm gà xối mỡ", cat:"Cơm, bún, phở", min:35000, max:45000, unit:"dĩa", img:"", desc:"Đùi gà giòn da, cơm chiên, dưa leo."},
+  {name:"Cơm gà", cat:"Cơm, bún, phở", min:30000, max:40000, unit:"dĩa", img:"", desc:"Cơm nấu nước gà, thịt gà luộc hoặc xé."},
+  {name:"Cơm trộn", cat:"Cơm, bún, phở", min:40000, max:60000, unit:"tô", img:"", desc:"Cơm trộn kiểu Hàn với rau, trứng và sốt cay."},
+  {name:"Bánh ướt lòng gà", cat:"Món khô & ăn nhanh", min:25000, max:35000, unit:"dĩa", img:"", desc:"Bánh ướt mềm, lòng gà, trứng non, nước mắm chua ngọt."},
+  {name:"Bún đậu mắm tôm", cat:"Lẩu, nướng & buffet", min:35000, max:60000, unit:"mẹt", img:"", desc:"Đậu hũ chiên giòn, chả cốm, thịt luộc, chấm mắm tôm."},
+  {name:"Mì trộn", cat:"Món khô & ăn nhanh", min:25000, max:35000, unit:"dĩa", img:"", desc:"Mì trộn sốt, thêm trứng và xúc xích."},
+  {name:"Hủ tiếu khô", cat:"Món khô & ăn nhanh", min:30000, max:40000, unit:"tô", img:"", desc:"Hủ tiếu trộn sốt, chén nước dùng để riêng."},
+  {name:"Bánh mì chảo", cat:"Món khô & ăn nhanh", min:30000, max:45000, unit:"phần", img:"", desc:"Chảo nóng có trứng, pate, xúc xích, ăn với bánh mì."},
+  {name:"Gỏi cuốn", cat:"Món khô & ăn nhanh", min:5000, max:10000, unit:"cuốn", img:"", desc:"Bánh tráng cuốn tôm, thịt, bún, rau sống, chấm tương đậu phộng."},
+  {name:"Bánh cống", cat:"Món khô & ăn nhanh", min:5000, max:10000, unit:"cái", img:"", desc:"Bánh chiên giòn nhân đậu xanh, tôm, ăn kèm rau sống và nước mắm chua ngọt."},
+  {name:"Bánh xèo", cat:"Món khô & ăn nhanh", min:20000, max:40000, unit:"cái", img:"", desc:"Vỏ giòn, nhân tôm thịt giá, cuốn cải xanh và rau rừng chấm nước mắm."},
+  {name:"Cơm chay", cat:"Cơm, bún, phở", min:15000, max:25000, unit:"dĩa", img:"", desc:"Cơm với các món chay, nhẹ bụng."},
+  {name:"Hủ tiếu chay", cat:"Cơm, bún, phở", min:15000, max:25000, unit:"tô", img:"", desc:"Nước dùng rau củ thanh ngọt."},
+  {name:"Phở chay", cat:"Cơm, bún, phở", min:20000, max:30000, unit:"tô", img:"", desc:"Phở với nấm, đậu hũ và rau."},
+  {name:"Lẩu chay", cat:"Lẩu, nướng & buffet", min:120000, max:200000, unit:"nồi", img:"", desc:"Lẩu nấm và rau củ, hợp đi nhóm."},
+  {name:"Đồ nướng", cat:"Lẩu, nướng & buffet", min:100000, max:200000, unit:"người", img:"", desc:"Thịt, hải sản nướng tại bàn, hợp đi đông."},
+  {name:"Lẩu Thái", cat:"Lẩu, nướng & buffet", min:180000, max:300000, unit:"nồi", img:"", desc:"Chua cay, hợp nhóm 3 đến 4 người."},
+  {name:"Lẩu thập cẩm", cat:"Lẩu, nướng & buffet", min:180000, max:300000, unit:"nồi", img:"", desc:"Đủ bò, hải sản, viên thả lẩu."},
+  {name:"Lẩu cua đồng", cat:"Lẩu, nướng & buffet", min:180000, max:300000, unit:"nồi", img:"", desc:"Riêu cua đồng béo, ăn với rau đồng."},
+  {name:"Lotteria", cat:"Món khô & ăn nhanh", min:40000, max:100000, unit:"phần", img:"", desc:"Gà rán, burger, khoai tây chiên."},
+  {name:"Jollibee", cat:"Món khô & ăn nhanh", min:35000, max:90000, unit:"phần", img:"", desc:"Gà giòn, mì Ý, combo cho cả nhà."},
+  {name:"Dookki", cat:"Lẩu, nướng & buffet", min:130000, max:170000, unit:"người", img:"", desc:"Buffet lẩu tokbokki kiểu Hàn."},
+  {name:"Spicy Box", cat:"Lẩu, nướng & buffet", min:40000, max:90000, unit:"phần", img:"", desc:"Mì cay, lẩu tokbokki, chọn cấp độ cay."},
+  {name:"Changwon", cat:"Lẩu, nướng & buffet", min:160000, max:250000, unit:"người", img:"", desc:"Buffet lẩu nướng kiểu Hàn, hợp đi nhóm."},
+  {name:"Mì cay", cat:"Cơm, bún, phở", min:35000, max:70000, unit:"tô", img:"", desc:"Mì cay kiểu Hàn, chọn cấp độ từ 0 đến 7."}
 ];
 // Mỗi loại món một màu viền dưới thẻ, giống màu độ hiếm trong CS2
-var CAT_COLOR = {"Bún, phở, hủ tiếu":"--stool","Cơm":"--herb","Món khô & ăn vặt":"--broth","Món chay":"--teal","Lẩu & nướng":"--chili","Gà rán & món Hàn":"--plum","Món của tôi":"--lotus"};
-var CATS = ["Tất cả","Bún, phở, hủ tiếu","Cơm","Món khô & ăn vặt","Món chay","Lẩu & nướng","Gà rán & món Hàn","Món của tôi"];
-// Mức giá: lọc theo giá thấp nhất của món
+var CAT_COLOR = {"Cơm, bún, phở":"--herb","Món khô & ăn nhanh":"--broth","Lẩu, nướng & buffet":"--chili","Món của tôi":"--stool"};
+var CATS = ["Tất cả","Cơm, bún, phở","Món khô & ăn nhanh","Lẩu, nướng & buffet","Món của tôi"];
+// Đổi tên loại món cũ (đã lưu trong trình duyệt) sang loại mới
+// Món mặc định đã bỏ khỏi danh sách: xoá luôn khỏi danh sách đã lưu trong trình duyệt
+var REMOVED = ["Seoul"];
+var OLD_CAT = {"Bún, phở, hủ tiếu":"Cơm, bún, phở","Cơm":"Cơm, bún, phở","Món chay":"Cơm, bún, phở","Món khô & ăn vặt":"Món khô & ăn nhanh","Lẩu & nướng":"Lẩu, nướng & buffet","Gà rán & món Hàn":"Món khô & ăn nhanh"};
+// Nhóm tiền: món hiện trong nhóm nếu khoảng giá của món chạm vào nhóm đó (giá không hiện trên trang)
 var PRICE_BANDS = [
-  {label:"Mọi mức giá", test:function(){ return true; }},
-  {label:"Dưới 30.000đ", test:function(d){ return d.min != null && d.min < 30000; }},
-  {label:"30.000đ – 100.000đ", test:function(d){ return d.min != null && d.min >= 30000 && d.min <= 100000; }},
-  {label:"Trên 100.000đ", test:function(d){ return d.min != null && d.min > 100000; }}
+  {label:"Mọi mức giá"},
+  {label:"Dưới 30k",   lo:0,      hi:29999},
+  {label:"30k – 60k",  lo:30000,  hi:60000},
+  {label:"60k – 150k", lo:60001,  hi:150000},
+  {label:"Trên 150k",  lo:150001, hi:Infinity}
 ];
+function inBand(d, i){
+  var b = PRICE_BANDS[i];
+  if(b.lo == null || d.min == null) return true; // món chưa có giá thì hiện ở mọi nhóm
+  return d.max >= b.lo && d.min <= b.hi;
+}
 var STORE_KEY = "an-gi-cao-lanh-v2";
 
 // ================== TRẠNG THÁI ==================
@@ -338,15 +358,27 @@ function rarity(d){ return "var(" + (CAT_COLOR[d.cat] || "--plum") + ")"; }
 function load(){
   try{
     var s = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
-    if(s && Array.isArray(s.dishes) && s.dishes.length) dishes = s.dishes;
+    if(s && Array.isArray(s.dishes) && s.dishes.length){
+      dishes = s.dishes.filter(function(d){ return REMOVED.indexOf(d.name) === -1 || d.cat === "Món của tôi"; }).map(function(d){
+        var def = DEFAULT_DISHES.filter(function(x){ return x.name === d.name; })[0];
+        if(def){ d.cat = def.cat; d.min = def.min; d.max = def.max; } else if(OLD_CAT[d.cat]) d.cat = OLD_CAT[d.cat];
+        return d;
+      });
+      // Món mặc định mới thêm vào code: tự bổ sung vào danh sách đã lưu (trừ món bạn đã xoá)
+      var known = Array.isArray(s.defaults) ? s.defaults : dishes.map(function(d){ return d.name; });
+      DEFAULT_DISHES.forEach(function(def){
+        var has = dishes.some(function(d){ return d.name.toLowerCase() === def.name.toLowerCase(); });
+        if(!has && known.indexOf(def.name) === -1) dishes.push(Object.assign({}, def));
+      });
+    }
     if(s && Array.isArray(s.spinLog)) spinLog = s.spinLog.slice(0,6);
   }catch(e){}
 }
 function save(){
-  try{ localStorage.setItem(STORE_KEY, JSON.stringify({dishes:dishes, spinLog:spinLog})); }catch(e){}
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify({dishes:dishes, spinLog:spinLog, defaults:DEFAULT_DISHES.map(function(d){ return d.name; })})); }catch(e){}
 }
 function visible(){
-  return dishes.filter(function(d){ return !excluded[d.name] && (filter==="Tất cả" || d.cat===filter); });
+  return dishes.filter(function(d){ return !excluded[d.name] && (filter==="Tất cả" || d.cat===filter) && inBand(d, band); });
 }
 function money(n){ return n.toLocaleString("vi-VN") + "đ"; }
 function priceText(d){
@@ -392,15 +424,23 @@ function bigText(d){ var s = document.createElement("span"); s.className = "big"
 function setOffset(px){ track.style.transform = "translateX(" + (SIGN*px) + "px)"; }
 
 // Dải đứng yên: xếp các món để người dùng thấy trước
-function buildIdle(){
+// focus: món cần đặt ngay giữa vạch (ví dụ món vừa thêm)
+function buildIdle(focus){
   if(spinning) return;
   sizeCards();
   var list = visible(); track.innerHTML = "";
-  var n = Math.ceil(reel.clientWidth / STEP) + 2;
+  var vw = reel.clientWidth, k = Math.ceil((vw/2) / STEP), n = 2*k + 3;
   // Trộn ngẫu nhiên để dải quay lúc đứng yên có nhiều loại món, nhiều màu
   var mixed = list.slice().sort(function(){ return Math.random() - 0.5; });
-  for(var i=0;i<n && mixed.length;i++) track.appendChild(makeCard(mixed[i % mixed.length]));
-  setOffset(0);
+  if(focus) mixed = mixed.filter(function(d){ return d !== focus; });
+  for(var i=0;i<n && (mixed.length || focus);i++){
+    var d = (focus && i === k) ? focus : mixed[i % Math.max(mixed.length,1)];
+    if(!d) d = focus;
+    var c = makeCard(d);
+    if(focus && i === k) c.classList.add("win");
+    track.appendChild(c);
+  }
+  setOffset(k*STEP + CARD_W/2 - vw/2); // thẻ thứ k nằm đúng vạch đỏ
   document.getElementById("count").textContent = list.length + " món trên dải quay";
 }
 
@@ -492,10 +532,17 @@ function renderChips(){
     b.onclick = function(){ if(spinning) return; filter = c; renderAll(); };
     box.appendChild(b);
   });
+  var pbox = document.getElementById("price-chips"); pbox.innerHTML = "";
+  PRICE_BANDS.forEach(function(p, i){
+    var b = document.createElement("button");
+    b.className = "chip"; b.setAttribute("aria-pressed", i === band); b.textContent = p.label;
+    b.onclick = function(){ if(spinning) return; band = i; renderAll(); };
+    pbox.appendChild(b);
+  });
 }
 function renderItems(){
   var ul = document.getElementById("items"); ul.innerHTML = "";
-  dishes.filter(function(d){ return (filter === "Tất cả" || d.cat === filter); }).forEach(function(d){
+  dishes.filter(function(d){ return (filter === "Tất cả" || d.cat === filter) && inBand(d, band); }).forEach(function(d){
     var li = document.createElement("li"); li.style.setProperty("--rarity", rarity(d));
     if(excluded[d.name]) li.className = "off";
     var span = document.createElement("span"); span.textContent = d.name;
@@ -546,6 +593,10 @@ CATS.slice(1).forEach(function(c){
   var o = document.createElement("option"); o.value = c; o.textContent = c; catSelect.appendChild(o);
 });
 catSelect.value = "Món của tôi";
+var bandSelect = document.getElementById("new-band");
+PRICE_BANDS.forEach(function(p, i){
+  var o = document.createElement("option"); o.value = i; o.textContent = i === 0 ? "Chưa rõ" : p.label; bandSelect.appendChild(o);
+});
 
 var addMsg = document.getElementById("add-msg"), msgTimer;
 function say(text, isErr){
@@ -563,15 +614,22 @@ document.getElementById("add-form").addEventListener("submit", function(e){
     say(name + " đã có trên dải quay rồi.", true); nameEl.select(); return;
   }
   var d = {name:name, cat:catSelect.value, img:"", desc:descEl.value.trim()};
+  var pb = PRICE_BANDS[+bandSelect.value];
+  if(pb.lo != null){ d.min = pb.lo; d.max = pb.hi === Infinity ? pb.lo : pb.hi; }
   dishes.push(d);
   delete excluded[name];
 
-  // Chuyển bộ lọc để món mới hiện ra ngay
-  filter = d.cat; band = 0;
-  nameEl.value = ""; descEl.value = "";
-  save(); renderAll();
+  // Đưa bộ lọc về Tất cả để món mới nằm chung với các món khác và quay được ngay
+  filter = "Tất cả"; band = 0;
+  nameEl.value = ""; descEl.value = ""; bandSelect.value = 0;
+  save(); renderChips(); renderItems(); buildIdle(d);
   say("Đã thêm " + name + " vào dải quay.");
-  nameEl.focus();
+  nameEl.blur(); descEl.blur();
+  // Cuộn lên dải quay để thấy món vừa thêm nằm giữa vạch
+  var countEl = document.getElementById("count");
+  countEl.textContent = "Đã thêm “" + name + "” vào dải quay";
+  setTimeout(function(){ if(!spinning) countEl.textContent = visible().length + " món trên dải quay"; }, 3500);
+  reel.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"center"});
 });
 document.getElementById("reset").onclick = function(){
   if(spinning) return;
