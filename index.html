@@ -1,3 +1,9 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F2F5EF">
 <title>Ăn Gì Ở Cao Lãnh</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,6 +28,9 @@
   --chili:#E8553A; --broth:#F0B455; --herb:#55A858; --stool:#3F8DB5; --plum:#A56BCC; --lotus:#E2689A; --teal:#3BB9A7; color-scheme:dark}
 
 *{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;-webkit-tap-highlight-color:transparent}
+button{touch-action:manipulation}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55}
 .wrap{max-width:1100px;margin:0 auto;padding-block:28px 56px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
@@ -142,8 +151,33 @@ select:focus-visible{outline:3px solid var(--stool);outline-offset:2px}
 .marker.tick{animation:tick .1s}
 @keyframes tick{50%{width:6px}}
 @media (prefers-reduced-motion:reduce){.marker.tick{animation:none}}
+/* ===== Điện thoại ===== */
+@media (max-width:600px){
+  .wrap{padding-block:18px 40px;gap:20px}
+  .sub{font-size:14.5px}
+  .reel{height:168px;border-radius:14px}
+  .track{top:16px}
+  .card{height:136px;border-radius:10px}
+  .card .big{font-size:18px}
+  .card:not(.has-img) .name{display:none}
+  .spin-row{width:100%;flex-wrap:nowrap}
+  .spin{flex:1;padding:14px 0;font-size:24px}
+  .add-jump{flex:0 0 auto;padding:14px 16px}
+  .chip{padding:9px 15px;font-size:14.5px}
+  .items{max-height:none}
+  .items li{font-size:14.5px;padding:5px 4px 5px 10px}
+  .items button{font-size:18px;padding:4px 8px}
+  .add{grid-template-columns:1fr;padding:16px}
+  .add input,.add select{font-size:16px;padding:11px 12px}
+  #add-btn{width:100%;padding:13px}
+  .result{max-width:none}
+  .result-actions{flex-direction:column;align-items:stretch;width:100%}
+  .result-actions .btn{padding:11px 14px;font-size:15px}
+  .history li{font-size:15px;padding-block:6px}
+}
 </style>
-
+</head>
+<body>
 <div class="wrap">
   <header>
     <span class="eyebrow">Đồng Tháp · đất sen hồng</span>
@@ -231,7 +265,7 @@ select:focus-visible{outline:3px solid var(--stool);outline-offset:2px}
 // Hướng chạy của dải: "right" = trái sang phải, "left" = phải sang trái (đúng kiểu CS2 gốc)
 var DIRECTION = "right";
 var SPIN_TIME = 6000;     // thời gian quay (mili giây)
-var CARD_W = 140, GAP = 8; // kích thước thẻ
+var CARD_W = 140, CARD_W_MOBILE = 116, GAP = 8; // độ rộng thẻ trên máy tính / điện thoại
 
 // ================== DỮ LIỆU MÓN ĂN ==================
 // Muốn thêm ảnh: điền đường dẫn vào img, ví dụ img:"images/pho-bo.jpg" hoặc một link ảnh https://...
@@ -328,9 +362,15 @@ function pick(list){ return list[Math.floor(Math.random()*list.length)]; }
 
 // ================== DẢI QUAY ==================
 var reel = document.getElementById("reel"), track = document.getElementById("track"), marker = document.getElementById("marker");
-var STEP = CARD_W + GAP, SIGN = DIRECTION === "right" ? 1 : -1;
-track.style.setProperty("--card", CARD_W + "px");
-track.style.setProperty("--gap", GAP + "px");
+var CARD_W_DESKTOP = CARD_W, STEP, SIGN = DIRECTION === "right" ? 1 : -1;
+// Thẻ nhỏ hơn trên điện thoại để thấy được nhiều món hơn
+function sizeCards(){
+  CARD_W = innerWidth < 600 ? CARD_W_MOBILE : CARD_W_DESKTOP;
+  STEP = CARD_W + GAP;
+  track.style.setProperty("--card", CARD_W + "px");
+  track.style.setProperty("--gap", GAP + "px");
+}
+sizeCards();
 track.className = "track " + (DIRECTION === "right" ? "to-right" : "to-left");
 
 function makeCard(d){
@@ -338,6 +378,7 @@ function makeCard(d){
   c.className = "card"; c.style.setProperty("--rarity", rarity(d));
   var art = document.createElement("div"); art.className = "art";
   if(d.img){
+    c.classList.add("has-img");
     var im = document.createElement("img"); im.src = d.img; im.alt = d.name; im.loading = "lazy";
     im.onerror = function(){ art.innerHTML = ""; art.appendChild(bigText(d)); };
     art.appendChild(im);
@@ -353,6 +394,7 @@ function setOffset(px){ track.style.transform = "translateX(" + (SIGN*px) + "px)
 // Dải đứng yên: xếp các món để người dùng thấy trước
 function buildIdle(){
   if(spinning) return;
+  sizeCards();
   var list = visible(); track.innerHTML = "";
   var n = Math.ceil(reel.clientWidth / STEP) + 2;
   // Trộn ngẫu nhiên để dải quay lúc đứng yên có nhiều loại món, nhiều màu
@@ -540,3 +582,6 @@ var rt; window.addEventListener("resize", function(){ clearTimeout(rt); rt = set
 
 load(); renderAll(); renderHistory();
 </script>
+
+</body>
+</html>
