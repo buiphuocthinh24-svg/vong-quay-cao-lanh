@@ -1,0 +1,542 @@
+<title>Ăn Gì Ở Cao Lãnh</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
+<style>
+/* Bố cục: dải quay ngang chạy hết chiều rộng ở trên (kiểu mở hòm CS2), bên dưới là kết quả và bảng điều khiển */
+:root{
+  --bg:#F2F5EF; --surface:#FFFFFF; --ink:#1D1B16; --muted:#636A5E; --line:#DCE3D6;
+  --reel:#E7EDE3; --reel-card:#FFFFFF; --marker:#D9381E;
+  --chili:#D9381E; --broth:#E9A23B; --herb:#3E8E41; --stool:#2C6E91; --plum:#8A4FB0; --lotus:#C93F78; --teal:#1F8F80;
+  --on-dark:#FFFFFF;
+  --display:"Baloo 2","Be Vietnam Pro",system-ui,sans-serif;
+  --body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121410; --surface:#1B1E19; --ink:#EEF0EA; --muted:#A3A89C; --line:#2E3429;
+  --reel:#20251E; --reel-card:#2A3027; --marker:#E8553A;
+  --chili:#E8553A; --broth:#F0B455; --herb:#55A858; --stool:#3F8DB5; --plum:#A56BCC; --lotus:#E2689A; --teal:#3BB9A7; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121410; --surface:#1B1E19; --ink:#EEF0EA; --muted:#A3A89C; --line:#2E3429;
+  --reel:#20251E; --reel-card:#2A3027; --marker:#E8553A;
+  --chili:#E8553A; --broth:#F0B455; --herb:#55A858; --stool:#3F8DB5; --plum:#A56BCC; --lotus:#E2689A; --teal:#3BB9A7; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55}
+.wrap{max-width:1100px;margin:0 auto;padding-block:28px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:24px}
+
+header{display:flex;flex-direction:column;gap:4px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(40px,8vw,68px);line-height:1;margin:0}
+h1 .q{color:var(--lotus)}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--lotus)}
+.sub{color:var(--muted);margin:0;max-width:62ch}
+
+/* ===== Dải quay ===== */
+.reel-zone{display:flex;flex-direction:column;align-items:center;gap:16px}
+.reel{position:relative;width:100%;height:200px;background:var(--reel);border-radius:16px;overflow:hidden;
+  border:1px solid var(--line)}
+.reel::before,.reel::after{content:"";position:absolute;top:0;bottom:0;width:18%;z-index:2;pointer-events:none}
+.reel::before{left:0;background:linear-gradient(90deg,var(--reel),transparent)}
+.reel::after{right:0;background:linear-gradient(270deg,var(--reel),transparent)}
+.track{position:absolute;top:20px;display:flex;gap:var(--gap);will-change:transform}
+.track.to-right{right:0;flex-direction:row-reverse}
+.track.to-left{left:0;flex-direction:row}
+.marker{position:absolute;top:0;bottom:0;left:50%;width:3px;transform:translateX(-50%);background:var(--marker);z-index:3;border-radius:2px}
+.marker::before,.marker::after{content:"";position:absolute;left:50%;transform:translateX(-50%);border:9px solid transparent}
+.marker::before{top:0;border-top-color:var(--marker)}
+.marker::after{bottom:0;border-bottom-color:var(--marker)}
+
+.card{flex:0 0 var(--card);width:var(--card);height:160px;border-radius:12px;overflow:hidden;
+  display:flex;flex-direction:column;position:relative;color:var(--ink);
+  background:color-mix(in srgb,var(--rarity) 16%,var(--reel-card));
+  border:1.5px solid color-mix(in srgb,var(--rarity) 35%,transparent);border-bottom:5px solid var(--rarity)}
+.card .art{flex:1;display:grid;place-items:center;padding:10px;text-align:center}
+.card .art img{width:100%;height:100%;object-fit:cover;border-radius:4px}
+.card .big{font:800 21px/1.1 var(--display);text-wrap:balance;color:color-mix(in srgb,var(--rarity) 55%,var(--ink))}
+.card .name{font-size:12px;font-weight:600;padding:6px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:color-mix(in srgb,var(--rarity) 22%,var(--reel-card));color:var(--ink)}
+.card.win{outline:3px solid var(--marker);outline-offset:-3px;box-shadow:0 6px 18px color-mix(in srgb,var(--marker) 30%,transparent)}
+
+.spin{font:800 22px var(--display);background:var(--chili);color:var(--on-dark);border:0;border-radius:999px;
+  padding:12px 48px;cursor:pointer;box-shadow:0 5px 0 color-mix(in srgb,var(--chili) 60%,#000)}
+.spin:active{transform:translateY(3px);box-shadow:0 2px 0 color-mix(in srgb,var(--chili) 60%,#000)}
+.spin:disabled{opacity:.6;cursor:wait}
+.spin-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px}
+.add-jump{font:600 15px var(--body);border:1.5px solid var(--herb);color:var(--herb);background:var(--surface);border-radius:999px;padding:11px 20px;cursor:pointer}
+.add-jump:hover{background:var(--herb);color:var(--on-dark)}
+.count{font-size:13px;color:var(--muted)}
+
+/* ===== Phần dưới ===== */
+.main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:820px){.main{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+
+/* ===== Thông báo kết quả (popup) ===== */
+[hidden]{display:none!important}
+.modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  background:rgba(10,12,9,.62);backdrop-filter:blur(3px);animation:fade .2s ease-out}
+.result{position:relative;width:100%;max-width:440px;background:var(--surface);border-radius:18px;overflow:hidden;
+  display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.35);border-bottom:8px solid var(--rarity,var(--marker));
+  animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+.result-top{background:color-mix(in srgb,var(--rarity,var(--marker)) 18%,var(--surface));color:var(--ink);padding:26px 20px 20px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.result-top .label{color:color-mix(in srgb,var(--rarity,var(--marker)) 70%,var(--ink))}
+.result-top .dish{color:var(--ink)}
+.result-body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.close{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;border:0;background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink);font-size:20px;line-height:1;cursor:pointer}
+.close:hover{background:color-mix(in srgb,var(--ink) 16%,transparent)}
+.result-actions .btn.primary{background:var(--chili);border-color:var(--chili);color:var(--on-dark)}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{transform:scale(.8);opacity:0}}
+@media (prefers-reduced-motion:reduce){.modal,.result{animation:none}}
+.result-img{width:120px;height:120px;border-radius:12px;overflow:hidden;background:var(--reel-card);margin-bottom:4px}
+.result-img img{width:100%;height:100%;object-fit:cover}
+.label{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.dish{font:800 clamp(28px,5vw,38px) var(--display);line-height:1.05;margin:0}
+.facts{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font-size:13px;font-weight:600;border-radius:999px;padding:3px 11px;background:var(--bg);border:1px solid var(--line)}
+.pill .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:var(--rarity)}
+.desc{margin:0;color:var(--muted)}
+.result-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:4px}
+.btn{font:600 14px var(--body);border:1.5px solid var(--ink);background:transparent;color:var(--ink);border-radius:999px;padding:7px 14px;cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--bg)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--stool);outline-offset:2px}
+
+h2{font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:600 14px var(--body);border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.chip i{width:9px;height:9px;border-radius:50%;background:var(--rarity)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+
+.list-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.link{background:none;border:0;color:var(--stool);font:600 13px var(--body);cursor:pointer;padding:0}
+.filters{display:flex;flex-wrap:wrap;gap:16px 40px;padding-block:4px 20px;border-bottom:1px solid var(--line)}
+.filters > div{min-width:0}
+.add{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.add h2{grid-column:1/-1;margin:0}
+.add .full{grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:13px;font-weight:600;color:var(--muted)}
+.add input,.add select{width:100%;min-width:0;font:15px var(--body);padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.add input:focus,.add select:focus{border-color:var(--herb);outline:none}
+.add-foot{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:2px}
+#add-btn{font:600 15px var(--body);border:0;border-radius:10px;padding:10px 18px;background:var(--herb);color:var(--on-dark);cursor:pointer}
+#add-btn:hover{filter:brightness(1.08)}
+.add-msg{font-size:13.5px;font-weight:600;color:var(--herb)}
+.add-msg.err{color:var(--chili)}
+select:focus-visible{outline:3px solid var(--stool);outline-offset:2px}
+.items{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px;max-height:190px;overflow:auto}
+.items li{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--rarity);border-radius:8px;padding:3px 4px 3px 8px;font-size:14px}
+.items li small{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.items li.off{opacity:.45;text-decoration:line-through}
+.items button{border:0;background:none;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:6px}
+.items button:hover{color:var(--chili)}
+
+.history{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.history li{display:flex;justify-content:space-between;gap:12px;font-size:14px;border-bottom:1px dashed var(--line);padding-block:4px}
+.history time{color:var(--muted);font-variant-numeric:tabular-nums}
+.empty{color:var(--muted);font-size:14px;margin:0}
+.note{font-size:12.5px;color:var(--muted);margin:0;max-width:70ch}
+.price-big{font:800 20px var(--display);color:var(--ink);font-variant-numeric:tabular-nums}
+.marker.tick{animation:tick .1s}
+@keyframes tick{50%{width:6px}}
+@media (prefers-reduced-motion:reduce){.marker.tick{animation:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Đồng Tháp · đất sen hồng</span>
+    <h1>Ăn gì ở Cao Lãnh<span class="q">?</span></h1>
+    <p class="sub">Bấm Quay để chọn ngẫu nhiên một món hay một quán quen ở Cao Lãnh. Lọc theo loại món, thêm món bạn thích, bỏ món vừa ăn hôm qua.</p>
+  </header>
+
+  <section class="reel-zone">
+    <div class="reel" id="reel">
+      <div class="track" id="track"></div>
+      <div class="marker" id="marker"></div>
+    </div>
+    <div class="spin-row">
+      <button class="spin" id="spin">Quay!</button>
+      <button class="add-jump" id="add-jump">+ Thêm món</button>
+    </div>
+    <div class="count" id="count"></div>
+  </section>
+
+  <section class="filters">
+    <div>
+      <h2>Loại món</h2>
+      <div class="chips" id="chips"></div>
+    </div>
+  </section>
+
+  <div class="main">
+    <div class="col">
+      <div>
+        <h2>Đã quay</h2>
+        <ul class="history" id="history"><li class="empty">Chưa quay lần nào.</li></ul>
+      </div>
+    </div>
+
+    <div class="col">
+      <div>
+        <div class="list-head"><h2>Món trên dải quay</h2><button class="link" id="reset">Khôi phục mặc định</button></div>
+        <ul class="items" id="items"></ul>
+      </div>
+      <form class="add" id="add-form">
+        <h2>Thêm món mới</h2>
+        <div class="field full">
+          <label for="new-dish">Tên món</label>
+          <input id="new-dish" placeholder="Ví dụ: Bánh xèo" maxlength="30" autocomplete="off" required>
+        </div>
+        <div class="field full">
+          <label for="new-cat">Loại món</label>
+          <select id="new-cat"></select>
+        </div>
+        <div class="field full">
+          <label for="new-desc">Mô tả ngắn (không bắt buộc)</label>
+          <input id="new-desc" maxlength="120" autocomplete="off" placeholder="Ví dụ: Quán đầu chợ, mở buổi sáng">
+        </div>
+        <div class="add-foot full">
+          <button type="submit" id="add-btn">Thêm vào dải quay</button>
+          <span class="add-msg" id="add-msg" aria-live="polite"></span>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="result" id="result" role="dialog" aria-modal="true" aria-labelledby="dish">
+    <button class="close" id="close" aria-label="Đóng">×</button>
+    <div class="result-top">
+      <div class="result-img" id="result-img" hidden></div>
+      <span class="label" id="result-label">Hôm nay ăn</span>
+      <p class="dish" id="dish"></p>
+    </div>
+    <div class="result-body">
+      <div class="facts" id="facts"></div>
+      <p class="desc" id="desc"></p>
+      <div class="result-actions" id="actions">
+        <button class="btn primary" id="ok">Chốt món này</button>
+        <button class="btn" id="again">Quay lại</button>
+        <button class="btn" id="skip">Bỏ món này, quay tiếp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================== CÀI ĐẶT ==================
+// Hướng chạy của dải: "right" = trái sang phải, "left" = phải sang trái (đúng kiểu CS2 gốc)
+var DIRECTION = "right";
+var SPIN_TIME = 6000;     // thời gian quay (mili giây)
+var CARD_W = 140, GAP = 8; // kích thước thẻ
+
+// ================== DỮ LIỆU MÓN ĂN ==================
+// Muốn thêm ảnh: điền đường dẫn vào img, ví dụ img:"images/pho-bo.jpg" hoặc một link ảnh https://...
+// Để trống img:"" thì thẻ hiện chữ.
+// min, max: giá thấp nhất và cao nhất (đồng), unit: đơn vị tính
+var DEFAULT_DISHES = [
+  {name:"Bún cá", cat:"Bún, phở, hủ tiếu", min:25000, max:35000, unit:"tô", img:"", desc:"Bún cá lóc nước ngọt thanh, ăn kèm rau sống và bông điên điển."},
+  {name:"Mì Quảng", cat:"Bún, phở, hủ tiếu", min:30000, max:40000, unit:"tô", img:"", desc:"Sợi mì vàng, ít nước, ăn kèm bánh tráng mè."},
+  {name:"Bánh canh gà", cat:"Bún, phở, hủ tiếu", min:25000, max:35000, unit:"tô", img:"", desc:"Sợi bánh canh dai, thịt gà xé, nước dùng ngọt."},
+  {name:"Mì tươi", cat:"Bún, phở, hủ tiếu", min:25000, max:35000, unit:"tô", img:"", desc:"Mì tươi sợi mềm, có xá xíu, trứng cút."},
+  {name:"Bánh canh cua", cat:"Bún, phở, hủ tiếu", min:35000, max:50000, unit:"tô", img:"", desc:"Nước sệt đậm vị cua, thêm chả cua."},
+  {name:"Bánh canh ghẹ", cat:"Bún, phở, hủ tiếu", min:40000, max:60000, unit:"tô", img:"", desc:"Nguyên con ghẹ, nước dùng ngọt thịt."},
+  {name:"Cháo thịt bằm", cat:"Bún, phở, hủ tiếu", min:15000, max:25000, unit:"tô", img:"", desc:"Nhẹ bụng, ăn sáng hay lúc mệt đều hợp."},
+  {name:"Hủ tiếu", cat:"Bún, phở, hủ tiếu", min:25000, max:40000, unit:"tô", img:"", desc:"Hủ tiếu nước, có thịt, tôm, lòng."},
+  {name:"Bún bò", cat:"Bún, phở, hủ tiếu", min:30000, max:45000, unit:"tô", img:"", desc:"Cay thơm mùi sả, có giò heo và chả."},
+  {name:"Phở", cat:"Bún, phở, hủ tiếu", min:30000, max:45000, unit:"tô", img:"", desc:"Phở bò tái, nạm, gân, thêm rau quế và chanh."},
+  {name:"Bún riêu", cat:"Bún, phở, hủ tiếu", min:25000, max:35000, unit:"tô", img:"", desc:"Riêu cua, đậu hũ chiên, huyết, thêm mắm tôm."},
+  {name:"Bún Thái", cat:"Bún, phở, hủ tiếu", min:35000, max:50000, unit:"tô", img:"", desc:"Nước chua cay kiểu Thái, có hải sản."},
+  {name:"Miến gà", cat:"Bún, phở, hủ tiếu", min:30000, max:40000, unit:"tô", img:"", desc:"Miến dai, thịt gà, nước dùng thanh."},
+  {name:"Bún mắm", cat:"Bún, phở, hủ tiếu", min:35000, max:50000, unit:"tô", img:"", desc:"Nước mắm cá linh đậm đà, có tôm, mực, heo quay."},
+  {name:"Cơm lòng", cat:"Cơm", min:25000, max:35000, unit:"dĩa", img:"", desc:"Lòng heo luộc hoặc xào, ăn với cơm nóng."},
+  {name:"Cơm tấm", cat:"Cơm", min:25000, max:40000, unit:"dĩa", img:"", desc:"Sườn nướng, bì, chả trứng và mỡ hành."},
+  {name:"Cơm gà xối mỡ", cat:"Cơm", min:35000, max:45000, unit:"dĩa", img:"", desc:"Đùi gà giòn da, cơm chiên, dưa leo."},
+  {name:"Cơm gà", cat:"Cơm", min:30000, max:40000, unit:"dĩa", img:"", desc:"Cơm nấu nước gà, thịt gà luộc hoặc xé."},
+  {name:"Cơm trộn", cat:"Cơm", min:40000, max:60000, unit:"tô", img:"", desc:"Cơm trộn kiểu Hàn với rau, trứng và sốt cay."},
+  {name:"Bánh ướt lòng gà", cat:"Món khô & ăn vặt", min:25000, max:35000, unit:"dĩa", img:"", desc:"Bánh ướt mềm, lòng gà, trứng non, nước mắm chua ngọt."},
+  {name:"Bún đậu mắm tôm", cat:"Món khô & ăn vặt", min:35000, max:60000, unit:"mẹt", img:"", desc:"Đậu hũ chiên giòn, chả cốm, thịt luộc, chấm mắm tôm."},
+  {name:"Mì trộn", cat:"Món khô & ăn vặt", min:25000, max:35000, unit:"dĩa", img:"", desc:"Mì trộn sốt, thêm trứng và xúc xích."},
+  {name:"Hủ tiếu khô", cat:"Món khô & ăn vặt", min:30000, max:40000, unit:"tô", img:"", desc:"Hủ tiếu trộn sốt, chén nước dùng để riêng."},
+  {name:"Bánh mì chảo", cat:"Món khô & ăn vặt", min:30000, max:45000, unit:"phần", img:"", desc:"Chảo nóng có trứng, pate, xúc xích, ăn với bánh mì."},
+  {name:"Cơm chay", cat:"Món chay", min:15000, max:25000, unit:"dĩa", img:"", desc:"Cơm với các món chay, nhẹ bụng."},
+  {name:"Hủ tiếu chay", cat:"Món chay", min:15000, max:25000, unit:"tô", img:"", desc:"Nước dùng rau củ thanh ngọt."},
+  {name:"Phở chay", cat:"Món chay", min:20000, max:30000, unit:"tô", img:"", desc:"Phở với nấm, đậu hũ và rau."},
+  {name:"Lẩu chay", cat:"Món chay", min:120000, max:200000, unit:"nồi", img:"", desc:"Lẩu nấm và rau củ, hợp đi nhóm."},
+  {name:"Đồ nướng", cat:"Lẩu & nướng", min:100000, max:200000, unit:"người", img:"", desc:"Thịt, hải sản nướng tại bàn, hợp đi đông."},
+  {name:"Lẩu Thái", cat:"Lẩu & nướng", min:180000, max:300000, unit:"nồi", img:"", desc:"Chua cay, hợp nhóm 3 đến 4 người."},
+  {name:"Lẩu thập cẩm", cat:"Lẩu & nướng", min:180000, max:300000, unit:"nồi", img:"", desc:"Đủ bò, hải sản, viên thả lẩu."},
+  {name:"Lẩu cua đồng", cat:"Lẩu & nướng", min:180000, max:300000, unit:"nồi", img:"", desc:"Riêu cua đồng béo, ăn với rau đồng."},
+  {name:"Lotteria", cat:"Gà rán & món Hàn", min:40000, max:100000, unit:"phần", img:"", desc:"Gà rán, burger, khoai tây chiên."},
+  {name:"Jollibee", cat:"Gà rán & món Hàn", min:35000, max:90000, unit:"phần", img:"", desc:"Gà giòn, mì Ý, combo cho cả nhà."},
+  {name:"Dookki", cat:"Gà rán & món Hàn", min:130000, max:170000, unit:"người", img:"", desc:"Buffet lẩu tokbokki kiểu Hàn."},
+  {name:"Spicy Box", cat:"Gà rán & món Hàn", min:40000, max:90000, unit:"phần", img:"", desc:"Mì cay, tokbokki, chọn cấp độ cay."},
+  {name:"Changwon", cat:"Gà rán & món Hàn", min:50000, max:150000, unit:"người", img:"", desc:"Món Hàn, hợp đi nhóm."},
+  {name:"Seoul", cat:"Gà rán & món Hàn", min:50000, max:150000, unit:"người", img:"", desc:"Món Hàn, hợp đi nhóm."},
+  {name:"Mì cay", cat:"Gà rán & món Hàn", min:35000, max:70000, unit:"tô", img:"", desc:"Mì cay kiểu Hàn, chọn cấp độ từ 0 đến 7."}
+];
+// Mỗi loại món một màu viền dưới thẻ, giống màu độ hiếm trong CS2
+var CAT_COLOR = {"Bún, phở, hủ tiếu":"--stool","Cơm":"--herb","Món khô & ăn vặt":"--broth","Món chay":"--teal","Lẩu & nướng":"--chili","Gà rán & món Hàn":"--plum","Món của tôi":"--lotus"};
+var CATS = ["Tất cả","Bún, phở, hủ tiếu","Cơm","Món khô & ăn vặt","Món chay","Lẩu & nướng","Gà rán & món Hàn","Món của tôi"];
+// Mức giá: lọc theo giá thấp nhất của món
+var PRICE_BANDS = [
+  {label:"Mọi mức giá", test:function(){ return true; }},
+  {label:"Dưới 30.000đ", test:function(d){ return d.min != null && d.min < 30000; }},
+  {label:"30.000đ – 100.000đ", test:function(d){ return d.min != null && d.min >= 30000 && d.min <= 100000; }},
+  {label:"Trên 100.000đ", test:function(d){ return d.min != null && d.min > 100000; }}
+];
+var STORE_KEY = "an-gi-cao-lanh-v2";
+
+// ================== TRẠNG THÁI ==================
+var dishes = clone(DEFAULT_DISHES);
+var excluded = {};
+var filter = "Tất cả";
+var band = 0;
+var spinLog = [];
+var spinning = false, current = null;
+
+function clone(a){ return a.map(function(d){ return Object.assign({},d); }); }
+function rarity(d){ return "var(" + (CAT_COLOR[d.cat] || "--plum") + ")"; }
+
+function load(){
+  try{
+    var s = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    if(s && Array.isArray(s.dishes) && s.dishes.length) dishes = s.dishes;
+    if(s && Array.isArray(s.spinLog)) spinLog = s.spinLog.slice(0,6);
+  }catch(e){}
+}
+function save(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify({dishes:dishes, spinLog:spinLog})); }catch(e){}
+}
+function visible(){
+  return dishes.filter(function(d){ return !excluded[d.name] && (filter==="Tất cả" || d.cat===filter); });
+}
+function money(n){ return n.toLocaleString("vi-VN") + "đ"; }
+function priceText(d){
+  if(d.min == null) return "";
+  return (d.min === d.max ? money(d.min) : money(d.min) + " – " + money(d.max)) + (d.unit ? " / " + d.unit : "");
+}
+function priceShort(d){
+  if(d.min == null) return "";
+  var k = function(n){ return (n/1000).toLocaleString("vi-VN") + "k"; };
+  return d.min === d.max ? k(d.min) : k(d.min) + " – " + k(d.max);
+}
+function pick(list){ return list[Math.floor(Math.random()*list.length)]; }
+
+// ================== DẢI QUAY ==================
+var reel = document.getElementById("reel"), track = document.getElementById("track"), marker = document.getElementById("marker");
+var STEP = CARD_W + GAP, SIGN = DIRECTION === "right" ? 1 : -1;
+track.style.setProperty("--card", CARD_W + "px");
+track.style.setProperty("--gap", GAP + "px");
+track.className = "track " + (DIRECTION === "right" ? "to-right" : "to-left");
+
+function makeCard(d){
+  var c = document.createElement("div");
+  c.className = "card"; c.style.setProperty("--rarity", rarity(d));
+  var art = document.createElement("div"); art.className = "art";
+  if(d.img){
+    var im = document.createElement("img"); im.src = d.img; im.alt = d.name; im.loading = "lazy";
+    im.onerror = function(){ art.innerHTML = ""; art.appendChild(bigText(d)); };
+    art.appendChild(im);
+  } else art.appendChild(bigText(d));
+  var n = document.createElement("div"); n.className = "name"; n.textContent = d.name;
+  c.appendChild(art); c.appendChild(n);
+  return c;
+}
+function bigText(d){ var s = document.createElement("span"); s.className = "big"; s.textContent = d.name; return s; }
+
+function setOffset(px){ track.style.transform = "translateX(" + (SIGN*px) + "px)"; }
+
+// Dải đứng yên: xếp các món để người dùng thấy trước
+function buildIdle(){
+  if(spinning) return;
+  var list = visible(); track.innerHTML = "";
+  var n = Math.ceil(reel.clientWidth / STEP) + 2;
+  // Trộn ngẫu nhiên để dải quay lúc đứng yên có nhiều loại món, nhiều màu
+  var mixed = list.slice().sort(function(){ return Math.random() - 0.5; });
+  for(var i=0;i<n && mixed.length;i++) track.appendChild(makeCard(mixed[i % mixed.length]));
+  setOffset(0);
+  document.getElementById("count").textContent = list.length + " món trên dải quay";
+}
+
+function easeOut(t){ return 1 - Math.pow(1-t, 4); }
+
+function spin(){
+  var list = visible();
+  if(spinning) return;
+  if(list.length < 2){ showMessage("Cần ít nhất 2 món", "Thêm món, hoặc chọn loại món hay mức giá khác để quay."); return; }
+  spinning = true; spinBtn.disabled = true;
+
+  // Tạo dải dài 60 thẻ ngẫu nhiên, món trúng nằm ở vị trí 50
+  var WIN_AT = 50, winner = pick(list), cards = [];
+  for(var i=0;i<60;i++) cards.push(i === WIN_AT ? winner : pick(list));
+  track.innerHTML = "";
+  var els = cards.map(function(d){ var c = makeCard(d); track.appendChild(c); return c; });
+  setOffset(0); void track.offsetWidth;
+
+  // Khoảng cần chạy để tâm thẻ trúng nằm ngay vạch vàng, lệch ngẫu nhiên trong thẻ cho tự nhiên
+  var vw = reel.clientWidth;
+  var jitter = (Math.random() - 0.5) * CARD_W * 0.8;
+  var dist = WIN_AT*STEP + CARD_W/2 - vw/2 + jitter;
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var dur = reduce ? 600 : SPIN_TIME, t0 = performance.now(), lastIdx = -1;
+
+  function frame(now){
+    var t = Math.min(1, (now - t0) / dur), off = dist * easeOut(t);
+    setOffset(off);
+    var idx = Math.floor((off + vw/2) / STEP); // thẻ đang nằm dưới vạch
+    if(idx !== lastIdx){ lastIdx = idx; marker.classList.remove("tick"); void marker.offsetWidth; marker.classList.add("tick"); }
+    if(t < 1) requestAnimationFrame(frame);
+    else { els[WIN_AT].classList.add("win"); spinning = false; spinBtn.disabled = false; showDish(winner); }
+  }
+  requestAnimationFrame(frame);
+}
+
+// ================== KẾT QUẢ ==================
+var modal = document.getElementById("modal"), lastFocus = null;
+function openModal(){
+  lastFocus = document.activeElement;
+  modal.hidden = false;
+  document.getElementById("ok").focus();
+}
+function closeModal(){
+  modal.hidden = true;
+  if(lastFocus && lastFocus.focus) lastFocus.focus();
+}
+function showDish(d){
+  current = d;
+  document.getElementById("result").style.setProperty("--rarity", rarity(d));
+  document.getElementById("result-label").textContent = "Hôm nay ăn";
+  document.getElementById("dish").textContent = d.name;
+  document.getElementById("desc").textContent = d.desc || "Món bạn tự thêm. Chúc ngon miệng!";
+  var f = document.getElementById("facts"); f.innerHTML = "";
+  var cat = document.createElement("span"); cat.className = "pill"; cat.style.setProperty("--rarity", rarity(d));
+  cat.innerHTML = '<span class="dot"></span>'; cat.appendChild(document.createTextNode(d.cat)); f.appendChild(cat);
+  var box = document.getElementById("result-img"); box.innerHTML = "";
+  if(d.img){ var im = document.createElement("img"); im.src = d.img; im.alt = d.name; im.onerror = function(){ box.hidden = true; }; box.appendChild(im); box.hidden = false; }
+  else box.hidden = true;
+  ["again","skip"].forEach(function(id){ document.getElementById(id).hidden = false; });
+  document.getElementById("ok").textContent = "Chốt món này";
+  openModal();
+  var now = new Date();
+  spinLog.unshift({name:d.name, time: String(now.getHours()).padStart(2,"0") + ":" + String(now.getMinutes()).padStart(2,"0")});
+  spinLog = spinLog.slice(0,6);
+  save(); renderHistory();
+}
+function showMessage(title, text){
+  document.getElementById("result").style.removeProperty("--rarity");
+  document.getElementById("result-label").textContent = "Thông báo";
+  document.getElementById("dish").textContent = title;
+  document.getElementById("desc").textContent = text;
+  document.getElementById("facts").innerHTML = "";
+  document.getElementById("result-img").hidden = true;
+  ["again","skip"].forEach(function(id){ document.getElementById(id).hidden = true; });
+  document.getElementById("ok").textContent = "Đã hiểu";
+  openModal();
+}
+
+// ================== LỌC, DANH SÁCH, LỊCH SỬ ==================
+function renderChips(){
+  var box = document.getElementById("chips"); box.innerHTML = "";
+  CATS.forEach(function(c){
+    if(c === "Món của tôi" && !dishes.some(function(d){ return d.cat === c; })) return;
+    var b = document.createElement("button");
+    b.className = "chip"; b.setAttribute("aria-pressed", c === filter);
+    if(c !== "Tất cả"){ var i = document.createElement("i"); i.style.setProperty("--rarity", "var(" + CAT_COLOR[c] + ")"); b.appendChild(i); }
+    b.appendChild(document.createTextNode(c));
+    b.onclick = function(){ if(spinning) return; filter = c; renderAll(); };
+    box.appendChild(b);
+  });
+}
+function renderItems(){
+  var ul = document.getElementById("items"); ul.innerHTML = "";
+  dishes.filter(function(d){ return (filter === "Tất cả" || d.cat === filter); }).forEach(function(d){
+    var li = document.createElement("li"); li.style.setProperty("--rarity", rarity(d));
+    if(excluded[d.name]) li.className = "off";
+    var span = document.createElement("span"); span.textContent = d.name;
+    var x = document.createElement("button"); x.textContent = "×"; x.setAttribute("aria-label", "Xoá " + d.name);
+    x.onclick = function(){
+      if(spinning) return;
+      dishes = dishes.filter(function(o){ return o !== d; });
+      if(filter !== "Tất cả" && !dishes.some(function(o){ return o.cat === filter; })) filter = "Tất cả";
+      save(); renderAll();
+    };
+    li.appendChild(span); li.appendChild(x); ul.appendChild(li);
+  });
+}
+function renderHistory(){
+  var ul = document.getElementById("history"); ul.innerHTML = "";
+  if(!spinLog.length){ ul.innerHTML = '<li class="empty">Chưa quay lần nào.</li>'; return; }
+  spinLog.forEach(function(h){
+    var li = document.createElement("li");
+    var n = document.createElement("span"); n.textContent = h.name;
+    var t = document.createElement("time"); t.textContent = h.time;
+    li.appendChild(n); li.appendChild(t); ul.appendChild(li);
+  });
+}
+function renderAll(){ renderChips(); renderItems(); buildIdle(); }
+
+// ================== SỰ KIỆN ==================
+var spinBtn = document.getElementById("spin");
+spinBtn.onclick = spin;
+document.getElementById("again").onclick = function(){ closeModal(); spin(); };
+document.getElementById("skip").onclick = function(){
+  if(spinning) return;
+  closeModal();
+  if(current){ excluded[current.name] = true; renderChips(); renderItems(); }
+  spin();
+};
+document.getElementById("ok").onclick = closeModal;
+document.getElementById("add-jump").onclick = function(){
+  var f = document.getElementById("add-form");
+  f.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"center"});
+  setTimeout(function(){ document.getElementById("new-dish").focus({preventScroll:true}); }, 350);
+};
+document.getElementById("close").onclick = closeModal;
+modal.addEventListener("click", function(e){ if(e.target === modal) closeModal(); });
+document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !modal.hidden) closeModal(); });
+// Danh sách loại món trong ô chọn khi thêm
+var catSelect = document.getElementById("new-cat");
+CATS.slice(1).forEach(function(c){
+  var o = document.createElement("option"); o.value = c; o.textContent = c; catSelect.appendChild(o);
+});
+catSelect.value = "Món của tôi";
+
+var addMsg = document.getElementById("add-msg"), msgTimer;
+function say(text, isErr){
+  addMsg.textContent = text; addMsg.className = "add-msg" + (isErr ? " err" : "");
+  clearTimeout(msgTimer); msgTimer = setTimeout(function(){ addMsg.textContent = ""; }, 4000);
+}
+
+document.getElementById("add-form").addEventListener("submit", function(e){
+  e.preventDefault();
+  if(spinning){ say("Đợi quay xong rồi thêm nhé.", true); return; }
+  var nameEl = document.getElementById("new-dish"), name = nameEl.value.trim();
+  var descEl = document.getElementById("new-desc");
+  if(!name){ say("Nhập tên món trước nhé.", true); nameEl.focus(); return; }
+  if(dishes.some(function(d){ return d.name.toLowerCase() === name.toLowerCase(); })){
+    say(name + " đã có trên dải quay rồi.", true); nameEl.select(); return;
+  }
+  var d = {name:name, cat:catSelect.value, img:"", desc:descEl.value.trim()};
+  dishes.push(d);
+  delete excluded[name];
+
+  // Chuyển bộ lọc để món mới hiện ra ngay
+  filter = d.cat; band = 0;
+  nameEl.value = ""; descEl.value = "";
+  save(); renderAll();
+  say("Đã thêm " + name + " vào dải quay.");
+  nameEl.focus();
+});
+document.getElementById("reset").onclick = function(){
+  if(spinning) return;
+  dishes = clone(DEFAULT_DISHES); excluded = {}; filter = "Tất cả"; band = 0; save(); renderAll();
+  showMessage("Đã khôi phục", "Dải quay trở lại " + DEFAULT_DISHES.length + " món mặc định.");
+};
+var rt; window.addEventListener("resize", function(){ clearTimeout(rt); rt = setTimeout(buildIdle, 150); });
+
+load(); renderAll(); renderHistory();
+</script>
